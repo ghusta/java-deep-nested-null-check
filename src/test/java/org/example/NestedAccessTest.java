@@ -16,11 +16,13 @@ class NestedAccessTest {
 
     private Pojo0 pojoWithValue;
     private Pojo0 pojoWithoutValue;
+    private @Nullable Pojo0 pojoNull;
 
     @BeforeEach
     void setUp() {
         pojoWithValue = new Pojo0(new Pojo1(new Pojo2(new Pojo3("Hello"))));
         pojoWithoutValue = new Pojo0(new Pojo1(new Pojo2(null)));
+        pojoNull = null;
     }
 
     @Nested
@@ -47,6 +49,12 @@ class NestedAccessTest {
         @Test
         void with_pattern_matching_instanceof() {
             String value = extractNameWithPatternMatchingInstanceOf(pojoWithValue);
+            assertThat(value).isNotNull();
+        }
+
+        @Test
+        void with_pattern_matching_records() {
+            String value = extractNameWithPatternMatchingNestedRecords(pojoWithValue);
             assertThat(value).isNotNull();
         }
 
@@ -79,11 +87,34 @@ class NestedAccessTest {
             assertThat(value).isNull();
         }
 
+        @Test
+        void with_pattern_matching_records() {
+            String value = extractNameWithPatternMatchingNestedRecords(pojoWithoutValue);
+            assertThat(value).isNull();
+        }
+
+    }
+
+    @Nested
+    class WithNullPojo {
+
+        @Test
+        void with_exception_control_flow() {
+            String value = extractNameWithExceptionControlFlow(pojoNull);
+            assertThat(value).isNull();
+        }
+
+        @Test
+        void with_pattern_matching_records_null_pojo() {
+            String value = extractNameWithPatternMatchingNestedRecords(pojoNull);
+            assertThat(value).isNull();
+        }
+
     }
 
     static @Nullable String extractNameWithExceptionControlFlow(@Nullable Pojo0 pojo0) {
         try {
-            return pojo0.getPojo1().getPojo2().getPojo3().getName();
+            return pojo0.pojo1().pojo2().pojo3().name();
         } catch (NullPointerException e) {
             return null;
         }
@@ -91,53 +122,49 @@ class NestedAccessTest {
 
     static @Nullable String extractNameWithNormalControlFlow(@Nullable Pojo0 pojo0) {
         if (pojo0 != null &&
-                pojo0.getPojo1() != null &&
-                pojo0.getPojo1().getPojo2() != null &&
-                pojo0.getPojo1().getPojo2().getPojo3() != null) {
-            return pojo0.getPojo1().getPojo2().getPojo3().getName();
+                pojo0.pojo1() != null &&
+                pojo0.pojo1().pojo2() != null &&
+                pojo0.pojo1().pojo2().pojo3() != null) {
+            return pojo0.pojo1().pojo2().pojo3().name();
         }
         return null;
     }
 
     static @Nullable String extractNameWithNormalControlFlowTernaryOperator(@Nullable Pojo0 pojo0) {
-        Pojo1 pojo1 = pojo0 != null ? pojo0.getPojo1() : null;
-        Pojo2 pojo2 = pojo1 != null ? pojo1.getPojo2() : null;
-        Pojo3 pojo3 = pojo2 != null ? pojo2.getPojo3() : null;
-        return pojo3 != null ? pojo3.getName() : null;
+        Pojo1 pojo1 = pojo0 != null ? pojo0.pojo1() : null;
+        Pojo2 pojo2 = pojo1 != null ? pojo1.pojo2() : null;
+        Pojo3 pojo3 = pojo2 != null ? pojo2.pojo3() : null;
+        return pojo3 != null ? pojo3.name() : null;
     }
 
     static @Nullable String extractNameWithOptional(@Nullable Pojo0 pojo0) {
         return Optional.ofNullable(pojo0)
-                .map(Pojo0::getPojo1)
-                .map(Pojo1::getPojo2)
-                .map(Pojo2::getPojo3)
-                .map(Pojo3::getName)
+                .map(Pojo0::pojo1)
+                .map(Pojo1::pojo2)
+                .map(Pojo2::pojo3)
+                .map(Pojo3::name)
                 .orElse(null);
     }
 
-    static String extractNameWithPatternMatchingNestedRecords(Pojo0 pojo0) {
+    static @Nullable String extractNameWithPatternMatchingNestedRecords(@Nullable Pojo0 pojo0) {
         // must be records + Java 21
         // see : https://openjdk.org/jeps/405
-//        if (pojo0 instanceof Pojo0(Pojo1 pojo1)
-//                && pojo1 instanceof Pojo1(Pojo2 pojo2)
-//                && pojo2 instanceof Pojo2(Pojo3 pojo3)
-//                && pojo3 instanceof Pojo3(String name)) {
-//            return name;
-//        }
-//        return null;
-        throw new UnsupportedOperationException("Not records");
+        if (pojo0 instanceof Pojo0(Pojo1(Pojo2(Pojo3(String name))))) {
+            return name;
+        }
+        return null;
     }
 
     static @Nullable String extractNameWithPatternMatchingInstanceOf(@Nullable Pojo0 pojo0) {
         // see : https://openjdk.org/jeps/394
         if (pojo0 != null) {
-            Pojo1 p1 = pojo0.getPojo1();
+            Pojo1 p1 = pojo0.pojo1();
             if (p1 instanceof Pojo1) {
-                Pojo2 p2 = p1.getPojo2();
+                Pojo2 p2 = p1.pojo2();
                 if (p2 instanceof Pojo2) {
-                    Pojo3 p3 = p2.getPojo3();
+                    Pojo3 p3 = p2.pojo3();
                     if (p3 instanceof Pojo3) {
-                        return p3.getName();
+                        return p3.name();
                     }
                 }
             }
