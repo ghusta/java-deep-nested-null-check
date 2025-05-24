@@ -148,7 +148,7 @@ class NestedAccessTest {
 
     static @Nullable String extractNameWithPatternMatchingNestedRecords(@Nullable Pojo0 pojo0) {
         // must be records + Java 21
-        // see : https://openjdk.org/jeps/405
+        // see : https://openjdk.org/jeps/440 (Record Patterns)
         if (pojo0 instanceof Pojo0(Pojo1(Pojo2(Pojo3(String name))))) {
             return name;
         }
@@ -156,7 +156,7 @@ class NestedAccessTest {
     }
 
     static @Nullable String extractNameWithPatternMatchingInstanceOf(@Nullable Pojo0 pojo0) {
-        // see : https://openjdk.org/jeps/394
+        // see : https://openjdk.org/jeps/394 (Pattern Matching for instanceof)
         if (pojo0 != null) {
             Pojo1 p1 = pojo0.pojo1();
             if (p1 instanceof Pojo1) {
