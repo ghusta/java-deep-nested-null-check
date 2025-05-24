@@ -157,18 +157,13 @@ class NestedAccessTest {
 
     static @Nullable String extractNameWithPatternMatchingInstanceOf(@Nullable Pojo0 pojo0) {
         // see : https://openjdk.org/jeps/394 (Pattern Matching for instanceof)
-        if (pojo0 != null) {
-            Pojo1 p1 = pojo0.pojo1();
-            if (p1 instanceof Pojo1) {
-                Pojo2 p2 = p1.pojo2();
-                if (p2 instanceof Pojo2) {
-                    Pojo3 p3 = p2.pojo3();
-                    if (p3 instanceof Pojo3) {
+        if (pojo0 != null &&
+                pojo0.pojo1() instanceof Pojo1 p1 &&
+                p1.pojo2() instanceof Pojo2 p2 &&
+                p2.pojo3() instanceof Pojo3 p3) {
                         return p3.name();
-                    }
-                }
             }
-        }
+
         return null;
     }
 
